@@ -1,4 +1,5 @@
 import type { RunPhase } from '../app/useSimulation';
+import heroLogo from '../assets/hero-logo.png';
 
 const STATUS_TEXT: Record<RunPhase, string> = {
   unavailable: 'Simulation engine not loaded',
@@ -13,9 +14,9 @@ export default function Header({ phase, timeS }: { phase: RunPhase; timeS: numbe
   return (
     <header className="header">
       <div className="brand">
-        <span className="brand-mark" aria-hidden="true" />
-        <h1>
-          HEROES <span className="brand-sep">—</span> <span className="brand-sub">Oxygen Helmet Simulator</span>
+        <h1 className="brand-title">
+          <img className="brand-logo" src={heroLogo} alt="HERO" width={416} height={134} />
+          <span className="brand-sub">Simulator</span>
         </h1>
       </div>
       <div className={`sim-status status-${phase}`}>
