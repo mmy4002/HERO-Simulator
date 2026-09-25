@@ -3,11 +3,8 @@ import type { SceneFrame, SimulationEngine, SimulationEvent, SimulationParameter
 import { engineModule } from './engineLoader';
 import { toSample, toSceneFrame } from './mapping';
 import { CONTROLS, withLiveParameter, type LiveParameterKey, type Speed } from '../config/controls';
-import { CHUNK_S } from './runs';
+import { clockFrame } from './clock';
 
-/** Largest wall-clock gap credited per animation frame (hidden tabs / stalls do not catch up). */
-const MAX_FRAME_S = 0.25;
-const MAX_CHUNKS_PER_FRAME = 30;
 const UI_INTERVAL_MS = 250;
 const SCENE_INTERVAL_MS = 33;
 
@@ -87,25 +84,10 @@ export function useSimulation(): SimulationController {
     let backlogS = 0;
 
     const tick = (now: number) => {
-      backlogS += Math.min((now - last) / 1000, MAX_FRAME_S) * speed;
+      const r = clockFrame(engine, (now - last) / 1000, speed, backlogS, durationS, historyRef.current);
       last = now;
-      let s = engine.getState();
-      let stop: { phase: RunPhase; reason: string | null } | null = null;
-      let chunks = 0;
-      while (backlogS >= CHUNK_S && chunks < MAX_CHUNKS_PER_FRAME) {
-        if (s.timeS >= durationS - 1e-9) break;
-        const prev = s;
-        s = engine.advance(CHUNK_S);
-        backlogS -= CHUNK_S;
-        chunks++;
-        historyRef.current.push(toSample(s, prev));
-        if (s.status.kind !== 'ok') {
-          stop = { phase: 'halted', reason: s.status.message };
-          break;
-        }
-      }
-      if (chunks === MAX_CHUNKS_PER_FRAME) backlogS = 0;
-      if (!stop && s.timeS >= durationS - 1e-9) stop = { phase: 'complete', reason: `Run complete: ${durationS} s simulated.` };
+      backlogS = r.backlogS;
+      const { state: s, stop } = r;
 
       if (stop) {
         publish(s, false);

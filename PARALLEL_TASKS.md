@@ -10,6 +10,7 @@ The contract between the workstreams is **`src/shared/types.ts`**. Scope and mod
 - The other agents must **not** install packages or edit shared types. If they need a dependency or an interface change, they ask the main agent, stating the exact package/version or field name, type and unit.
 - Every agent must keep `npm run build` and `npm test` passing before reporting that a task is done.
 - Every agent works on its own git branch (`engine/*`, `scene/*`, `ui/*`). The main agent merges them.
+- **UI theme agent** (branch `ui/brochure-theme`) owns only `src/ui-theme/**`. It must not modify components, existing styles, the scene or the engine. The main agent imports its CSS after `src/styles.css` and handles any integration requests.
 
 ## 1. Main agent: dashboard, controls, charts, integration
 
