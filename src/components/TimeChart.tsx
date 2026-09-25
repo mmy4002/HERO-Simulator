@@ -19,9 +19,11 @@ interface Props {
   digits: number;
   referenceY?: { value: number; label: string };
   eventTimes?: number[];
+  /** Fixed lower bound for the y-axis (e.g. 0 for flows). */
+  yMin?: number;
 }
 
-export default function TimeChart({ title, unit, data, series, digits, referenceY, eventTimes = [] }: Props) {
+export default function TimeChart({ title, unit, data, series, digits, referenceY, eventTimes = [], yMin }: Props) {
   const hasData = data.length > 1;
   return (
     <figure className="chart">
@@ -35,7 +37,7 @@ export default function TimeChart({ title, unit, data, series, digits, reference
             <ComposedChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke="#eef2f5" vertical={false} />
               <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} tick={{ fontSize: 11 }} tickFormatter={(v: number) => v.toFixed(0)} height={18} />
-              <YAxis tick={{ fontSize: 11 }} width={46} domain={['auto', 'auto']} tickFormatter={(v: number) => v.toFixed(digits)} />
+              <YAxis tick={{ fontSize: 11 }} width={46} domain={[yMin ?? 'auto', 'auto']} tickFormatter={(v: number) => v.toFixed(digits)} />
               <Tooltip
                 formatter={(v) => (typeof v === 'number' ? `${v.toFixed(digits + 1)} ${unit}` : String(v))}
                 labelFormatter={(t) => `t = ${Number(t).toFixed(1)} s`}

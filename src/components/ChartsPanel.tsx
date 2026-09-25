@@ -42,6 +42,7 @@ function chartSet(rows: ChartRow[], prefixes: { p: string; name: string; dashed?
         title="External flows (1 s avg)"
         unit="ref L/min"
         digits={0}
+        yMin={0}
         data={rows}
         series={[...mk('inlet', 'Inlet', C.blue), ...mk('maintenance', 'Maintenance', C.teal), ...mk('overflow', 'Overflow', C.purple)]}
         eventTimes={eventTimes}
