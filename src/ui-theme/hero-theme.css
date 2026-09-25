@@ -273,6 +273,18 @@ body {
 }
 .reading[data-state='on'] .value,
 .reading[data-state='on'] .value-text { color: var(--hero-danger); }
+.reading[data-tone='alert'] {
+  background: rgba(255, 107, 94, 0.1);
+  border-color: rgba(255, 107, 94, 0.3);
+  border-left-color: var(--hero-danger);
+}
+.reading[data-tone='alert'] .value { color: var(--hero-danger); }
+.reading[data-tone='good'] {
+  background: rgba(62, 207, 122, 0.08);
+  border-color: rgba(62, 207, 122, 0.28);
+  border-left-color: #3ecf7a;
+}
+.reading[data-tone='good'] .value { color: #3ecf7a; }
 .flow-table th { color: var(--hero-muted); }
 .flow-table td { color: var(--hero-warm-white); font-weight: 600; }
 .flow-table td.req { color: var(--hero-muted); }

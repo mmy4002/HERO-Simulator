@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, type CSSProperties } from 'react';
 import type { HelmetSceneProps } from '../shared/types';
 import ImageScene from './image/ImageScene';
+import { IMAGE_HEIGHT, IMAGE_WIDTH } from './image/anchors';
 
 /** The 3D view (three.js) is loaded only when the user switches to it. */
 const Scene3D = lazy(() => import('./Scene3D'));
@@ -20,11 +21,18 @@ const toggleBtn = (active: boolean): CSSProperties => ({
 export default function HelmetScene({ frame, showLabels = true }: HelmetSceneProps) {
   const [view, setView] = useState<View>('image');
   return (
+    <div style={{ flex: 1, minHeight: 0, minWidth: 0, containerType: 'size', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <div
       className="scene-viewport"
       data-has-frame={frame !== null}
       data-active-view={view}
-      style={{ position: 'relative', flex: 1, minHeight: 0, minWidth: 0, alignSelf: 'stretch', overflow: 'hidden', border: 'none', background: '#eeefee' }}
+      style={{
+        position: 'relative', flex: 'none', minHeight: 0, minWidth: 0,
+        width: view === 'image' ? `min(100cqw, calc(100cqh * ${IMAGE_WIDTH / IMAGE_HEIGHT}))` : '100%',
+        height: view === 'image' ? 'auto' : '100%',
+        aspectRatio: view === 'image' ? `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` : undefined,
+        overflow: 'hidden', border: 'none', background: '#eeefee',
+      }}
     >
       {view === 'image' ? (
         <ImageScene frame={frame} showLabels={showLabels} />
@@ -41,6 +49,7 @@ export default function HelmetScene({ frame, showLabels = true }: HelmetScenePro
         <button type="button" style={toggleBtn(view === 'image')} aria-pressed={view === 'image'} onClick={() => setView('image')}>Photo view</button>
         <button type="button" style={toggleBtn(view === '3d')} aria-pressed={view === '3d'} onClick={() => setView('3d')}>3D view</button>
       </div>
+    </div>
     </div>
   );
 }

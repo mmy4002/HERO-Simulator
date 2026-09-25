@@ -2,9 +2,14 @@ import type { ReactNode } from 'react';
 import type { SimulationSample, SimulationState } from '../shared/types';
 import { fmt, fracToPct, fracToPpm, paToBar, paToCmH2O, UNAVAILABLE } from '../app/units';
 
-function Reading({ label, value, unit, sub, title, state }: { label: string; value: string; unit: string; sub?: ReactNode; title?: string; state?: 'on' | 'off' }) {
+const CO2_ALERT_FRAC = 0.02;
+const O2_GOOD_FRAC = 0.8;
+
+type Tone = 'alert' | 'good';
+
+function Reading({ label, value, unit, sub, title, state, tone }: { label: string; value: string; unit: string; sub?: ReactNode; title?: string; state?: 'on' | 'off'; tone?: Tone }) {
   return (
-    <div className="reading" title={title} data-state={state}>
+    <div className="reading" title={title} data-state={state} data-tone={tone}>
       <dt className="reading-label">{label}</dt>
       <dd className="reading-value">
         <span className={/\d/.test(value) ? 'value' : 'value value-text'}>{value}</span>
@@ -19,8 +24,6 @@ export default function ReadingsPanel({ state, latest }: { state: SimulationStat
   const h = state?.helmet;
   const f = state?.flows;
   const b = state?.breath;
-  const inspired = b?.lastInspiredCo2Frac;
-  const inspiredText = !state ? UNAVAILABLE : b === null ? 'no patient' : inspired === null || inspired === undefined ? 'awaiting first breath' : null;
 
   return (
     <section className="panel readings" aria-labelledby="readings-title">
@@ -28,9 +31,9 @@ export default function ReadingsPanel({ state, latest }: { state: SimulationStat
       <dl className="reading-list">
         <Reading
           label="Helmet pressure"
-          value={fmt(h && paToBar(h.pressurePaAbs), 4)}
+          value={fmt(h && paToBar(h.pressurePaAbs), 3)}
           unit="bar abs"
-          sub={h ? `${fmt(paToBar(h.pressurePaGauge), 4)} bar gauge · ${fmt(paToCmH2O(h.pressurePaGauge), 1)} cmH₂O` : 'gauge —'}
+          sub={h ? `${fmt(paToBar(h.pressurePaGauge), 3)} bar gauge · ${fmt(paToCmH2O(h.pressurePaGauge), 1)} cmH₂O` : 'gauge —'}
         />
         <Reading
           label="CO₂ (bulk, well-mixed)"
@@ -38,17 +41,13 @@ export default function ReadingsPanel({ state, latest }: { state: SimulationStat
           unit="%"
           sub={h ? `${fmt(fracToPpm(h.fractions.co2Frac), 0)} ppm · pCO₂ ${fmt(paToBar(h.co2PartialPressurePaAbs) * 1000, 2)} mbar` : undefined}
           title="Dry-gas partial pressure xCO₂·P, not an alveolar or arterial value"
-        />
-        <Reading
-          label="Inspired CO₂ (last breath)"
-          value={inspiredText ?? fmt(fracToPct(inspired!), 3)}
-          unit={inspiredText ? '' : '%'}
-          title="Breath-weighted average over the last completed inspiration"
+          tone={h && h.fractions.co2Frac > CO2_ALERT_FRAC ? 'alert' : undefined}
         />
         <Reading
           label="O₂ concentration"
           value={fmt(h && fracToPct(h.fractions.o2Frac), 2)}
           unit="%"
+          tone={h && h.fractions.o2Frac > O2_GOOD_FRAC ? 'good' : undefined}
           sub={h ? `pO₂ ${fmt(paToBar(h.o2PartialPressurePaAbs), 3)} bar` : undefined}
           title="Dry-gas partial pressure xO₂·P"
         />
