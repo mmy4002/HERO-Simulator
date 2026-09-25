@@ -3,16 +3,23 @@ import ControlsPanel from './components/ControlsPanel';
 import ScenePanel from './components/ScenePanel';
 import ReadingsPanel from './components/ReadingsPanel';
 import ChartsPanel from './components/ChartsPanel';
+import RunsPanel from './components/RunsPanel';
+import { useSimulation } from './app/useSimulation';
+import { useComparison } from './app/useComparison';
 
 export default function App() {
+  const sim = useSimulation();
+  const cmp = useComparison();
   return (
     <div className="app">
-      <Header />
+      <Header phase={sim.phase} timeS={sim.state?.timeS ?? null} />
       <main className="dashboard">
-        <ControlsPanel />
-        <ScenePanel />
-        <ReadingsPanel />
-        <ChartsPanel />
+        <ControlsPanel sim={sim}>
+          <RunsPanel sim={sim} cmp={cmp} />
+        </ControlsPanel>
+        <ScenePanel frame={sim.sceneFrame} />
+        <ReadingsPanel state={sim.state} />
+        <ChartsPanel history={sim.history} events={sim.events} parameters={sim.parameters} runs={cmp.runs} />
       </main>
     </div>
   );
