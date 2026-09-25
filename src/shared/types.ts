@@ -156,9 +156,11 @@ export interface BreathState {
 }
 
 export interface CumulativeTotals {
+  /** "Oxygen supplied": cumulative O2 drawn from the cylinder via the inlet. Not patient uptake. */
   o2FromSourceRefL: number;
   o2FromSourceMol: number;
   ventedMoles: GasMoles;
+  /** Patient metabolic O2 uptake, tracked separately from oxygen supplied. */
   metabolicO2UptakeMol: number;
   metabolicCo2ProductionMol: number;
 }

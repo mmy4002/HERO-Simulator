@@ -27,7 +27,7 @@ export const READINGS: ReadingDef[] = [
   { id: 'helmetPressure', label: 'Helmet pressure', unit: 'bar abs' },
   { id: 'co2', label: 'CO₂', unit: '%' },
   { id: 'o2', label: 'O₂ concentration', unit: '%' },
-  { id: 'o2Consumed', label: 'O₂ consumed', unit: 'ref L' },
+  { id: 'o2Supplied', label: 'Oxygen supplied', unit: 'ref L' },
 ];
 
 export const CHARTS: ChartDef[] = [
