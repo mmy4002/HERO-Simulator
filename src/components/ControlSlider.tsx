@@ -22,8 +22,12 @@ export default function ControlSlider({ def, valueSI, disabled, onChange }: Prop
       setDraft(display === null ? '' : display.toFixed(def.digits));
       return;
     }
-    const clamped = Math.min(def.max, Math.max(def.min, raw));
-    onChange(def.fromDisplay(Number(clamped.toFixed(def.digits))));
+    const clamped = Number(Math.min(def.max, Math.max(def.min, raw)).toFixed(def.digits));
+    if (display !== null && clamped === Number(display.toFixed(def.digits))) {
+      setDraft(clamped.toFixed(def.digits));
+      return;
+    }
+    onChange(def.fromDisplay(clamped));
   };
 
   const id = `ctl-${def.key}`;
@@ -54,6 +58,7 @@ export default function ControlSlider({ def, valueSI, disabled, onChange }: Prop
           placeholder="—"
           value={draft}
           disabled={disabled || display === null}
+          onFocus={(e) => e.target.select()}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => commit(Number(draft))}
           onKeyDown={(e) => e.key === 'Enter' && commit(Number(draft))}
