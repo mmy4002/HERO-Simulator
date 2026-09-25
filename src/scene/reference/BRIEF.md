@@ -17,6 +17,9 @@ It supersedes all earlier generated visual drafts. Earlier image-edit requests o
 
 ## How to use this reference
 
-- Use it to guide a **genuine interactive 3D scene** (orbit/zoom/reset, props-driven animation). Do **not** substitute the flat image for the 3D model — no billboards, textures of the photo or image backdrops of the device.
+- **Revised direction (supersedes the earlier "reference only / no image in app" rule):** this exact image is now the
+  default displayed presentation (`src/scene/image/ImageScene.tsx`), shown unmodified at its original aspect ratio with
+  simulation-driven SVG overlays anchored in its pixel coordinates (`src/scene/image/anchors.ts`). The person, face,
+  hood, seal and equipment must not be warped or edited.
+- The procedural interactive 3D scene (`src/scene/Scene3D.tsx`) remains available as an optional secondary view.
 - It specifies **appearance only**. It is **not** a source of physical dimensions, volumes, pressures, flow rates or any other simulation parameters. Those come from `src/shared/types.ts` and the engine.
-- Keep this image for reference only. Do not ship it in the public build or import it from app code.
