@@ -18,7 +18,7 @@ export default function App() {
           <RunsPanel sim={sim} cmp={cmp} />
         </ControlsPanel>
         <ScenePanel frame={sim.sceneFrame} />
-        <ReadingsPanel state={sim.state} />
+        <ReadingsPanel state={sim.state} latest={sim.history[sim.history.length - 1] ?? null} />
         <ChartsPanel history={sim.history} events={sim.events} parameters={sim.parameters} runs={cmp.runs} />
       </main>
     </div>

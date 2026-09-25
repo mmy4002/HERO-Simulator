@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { SimulationState } from '../shared/types';
+import type { SimulationSample, SimulationState } from '../shared/types';
 import { fmt, fracToPct, fracToPpm, paToBar, paToCmH2O, UNAVAILABLE } from '../app/units';
 
 function Reading({ label, value, unit, sub, title, state }: { label: string; value: string; unit: string; sub?: ReactNode; title?: string; state?: 'on' | 'off' }) {
@@ -15,7 +15,7 @@ function Reading({ label, value, unit, sub, title, state }: { label: string; val
   );
 }
 
-export default function ReadingsPanel({ state }: { state: SimulationState | null }) {
+export default function ReadingsPanel({ state, latest }: { state: SimulationState | null; latest: SimulationSample | null }) {
   const h = state?.helmet;
   const f = state?.flows;
   const b = state?.breath;
@@ -53,23 +53,23 @@ export default function ReadingsPanel({ state }: { state: SimulationState | null
           title="Dry-gas partial pressure xO₂·P"
         />
         <div className="reading reading-flows">
-          <dt className="reading-label">Flows (ref L/min)</dt>
+          <dt className="reading-label" title="Inlet and overflow averaged over the last 0.1 s of simulated time">Flows (ref L/min)</dt>
           <dd>
             <table className="flow-table">
               <tbody>
-                <tr><th>Inlet</th><td>{fmt(f?.inletDeliveredRefLpm, 1)}</td><td className="req">of {fmt(f?.inletRequestedRefLpm, 0)}</td></tr>
+                <tr><th>Inlet</th><td>{fmt(latest?.inletRefLpm, 1)}</td><td className="req">of {fmt(f?.inletRequestedRefLpm, 0)}</td></tr>
                 <tr><th>Maintenance</th><td>{fmt(f?.maintenanceDeliveredRefLpm, 1)}</td><td className="req">of {fmt(f?.maintenanceRequestedRefLpm, 0)}</td></tr>
-                <tr><th>Overflow</th><td>{fmt(f?.overflowRefLpm, 1)}</td><td /></tr>
-                <tr className="total"><th>Total out</th><td>{fmt(f?.totalOutletRefLpm, 1)}</td><td /></tr>
+                <tr><th>Overflow</th><td>{fmt(latest?.overflowRefLpm, 1)}</td><td /></tr>
+                <tr className="total"><th>Total out</th><td>{fmt(latest && latest.maintenanceRefLpm + latest.overflowRefLpm, 1)}</td><td /></tr>
               </tbody>
             </table>
           </dd>
         </div>
         <Reading
           label="Overflow valve"
-          value={state ? (state.overflow.isOpen ? 'OPEN' : 'Closed') : UNAVAILABLE}
+          value={latest ? (latest.overflowOpen ? 'Venting' : 'Closed') : UNAVAILABLE}
           unit=""
-          state={state ? (state.overflow.isOpen ? 'on' : 'off') : undefined}
+          state={latest ? (latest.overflowOpen ? 'on' : 'off') : undefined}
           sub={state ? `duty cycle ${fmt(fracToPct(state.overflow.recentDutyCycleFrac), 0)} % (last ${fmt(state.overflow.dutyCycleWindowS, 0)} s)` : undefined}
         />
         <Reading label="Oxygen supplied" value={fmt(state?.cumulative.o2FromSourceRefL, 2)} unit="ref L" sub="cumulative, from cylinder" />

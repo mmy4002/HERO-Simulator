@@ -36,21 +36,23 @@ export interface SavedRun {
 export function runHeadless(createEngine: CreateEngine, parameters: SimulationParameters): RunResult {
   const engine = createEngine(structuredClone(parameters));
   let s = engine.reset(structuredClone(parameters));
-  let breaths = s.breath?.completedBreaths ?? 0;
-  const samples: SimulationSample[] = [toSample(s, breaths)];
+  const samples: SimulationSample[] = [toSample(s, null)];
   let haltReason: string | null = s.status.kind === 'ok' ? null : s.status.message;
   const durationS = parameters.numerics.durationS;
   while (!haltReason && s.timeS < durationS - 1e-9) {
+    const prev = s;
     s = engine.advance(CHUNK_S);
-    samples.push(toSample(s, breaths));
-    breaths = s.breath?.completedBreaths ?? 0;
+    samples.push(toSample(s, prev));
     if (s.status.kind !== 'ok') haltReason = s.status.message;
   }
-  return { samples, summary: summarize(samples, s.cumulative.o2FromSourceRefL), haltReason };
+  return { samples, summary: summarize(samples, s.cumulative.o2FromSourceRefL, parameters.outlets.overflowOpenCapacityRefLpm), haltReason };
 }
 
-/** Time-weighted statistics over the full run window (all samples are uniformly spaced). */
-export function summarize(samples: SimulationSample[], o2SuppliedRefL: number): RunSummary {
+/**
+ * Time-weighted statistics over the full run window (samples are uniformly spaced).
+ * Overflow duty cycle = mean overflow flow / open capacity, i.e. the fraction of time open.
+ */
+export function summarize(samples: SimulationSample[], o2SuppliedRefL: number, overflowCapacityRefLpm: number): RunSummary {
   const intervals = samples.slice(1);
   const n = Math.max(intervals.length, 1);
   const inspired = samples.map((s) => s.inspiredCo2Frac).filter((v): v is number => v !== null);
@@ -65,7 +67,7 @@ export function summarize(samples: SimulationSample[], o2SuppliedRefL: number): 
     meanInspiredCo2Frac: inspired.length ? inspired.reduce((a, v) => a + v, 0) / inspired.length : null,
     completedBreaths: inspired.length,
     o2SuppliedRefL,
-    overflowDutyCycleFrac: intervals.filter((s) => s.overflowOpen).length / n,
+    overflowDutyCycleFrac: overflowCapacityRefLpm > 0 ? intervals.reduce((a, s) => a + s.overflowRefLpm, 0) / n / overflowCapacityRefLpm : 0,
   };
 }
 

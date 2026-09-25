@@ -40,7 +40,6 @@ export function useSimulation(): SimulationController {
   const engineRef = useRef<SimulationEngine | null>(null);
   const historyRef = useRef<SimulationSample[]>([]);
   const eventsRef = useRef<SimulationEvent[]>([]);
-  const breathsRef = useRef(0);
   const [state, setState] = useState<SimulationState | null>(null);
   const [sceneFrame, setSceneFrame] = useState<SceneFrame | null>(null);
   const [history, setHistory] = useState<SimulationSample[]>([]);
@@ -51,7 +50,7 @@ export function useSimulation(): SimulationController {
 
   const publish = useCallback((s: Readonly<SimulationState>, running: boolean) => {
     setState(clone(s));
-    setSceneFrame(toSceneFrame(s, running));
+    setSceneFrame(toSceneFrame(s, historyRef.current[historyRef.current.length - 1] ?? null, running));
     setHistory(historyRef.current.slice());
     setEvents(eventsRef.current.slice());
   }, []);
@@ -61,8 +60,7 @@ export function useSimulation(): SimulationController {
       if (!engineModule) return;
       if (!engineRef.current) engineRef.current = engineModule.createEngine(clone(p));
       const s0 = engineRef.current.reset(clone(p));
-      breathsRef.current = s0.breath?.completedBreaths ?? 0;
-      historyRef.current = [toSample(s0, breathsRef.current)];
+      historyRef.current = [toSample(s0, null)];
       eventsRef.current = [];
       setHaltReason(s0.status.kind === 'ok' ? null : s0.status.message);
       setPhase(s0.status.kind === 'ok' ? 'ready' : 'halted');
@@ -96,11 +94,11 @@ export function useSimulation(): SimulationController {
       let chunks = 0;
       while (backlogS >= CHUNK_S && chunks < MAX_CHUNKS_PER_FRAME) {
         if (s.timeS >= durationS - 1e-9) break;
+        const prev = s;
         s = engine.advance(CHUNK_S);
         backlogS -= CHUNK_S;
         chunks++;
-        historyRef.current.push(toSample(s, breathsRef.current));
-        breathsRef.current = s.breath?.completedBreaths ?? 0;
+        historyRef.current.push(toSample(s, prev));
         if (s.status.kind !== 'ok') {
           stop = { phase: 'halted', reason: s.status.message };
           break;
@@ -116,7 +114,7 @@ export function useSimulation(): SimulationController {
         return;
       }
       if (now - lastScene >= SCENE_INTERVAL_MS) {
-        setSceneFrame(toSceneFrame(s, true));
+        setSceneFrame(toSceneFrame(s, historyRef.current[historyRef.current.length - 1] ?? null, true));
         lastScene = now;
       }
       if (now - lastUi >= UI_INTERVAL_MS) {
@@ -162,6 +160,11 @@ export function useSimulation(): SimulationController {
           label: event.label || `${def?.label ?? key} → ${def ? def.toDisplay(valueSI).toFixed(def.digits) : valueSI} ${def?.unit ?? ''}`,
         });
         setEvents(eventsRef.current.slice());
+        const status = engine.getState().status;
+        if (status.kind !== 'ok') {
+          setHaltReason(status.message);
+          setPhase('halted');
+        }
       } catch (err) {
         setHaltReason(err instanceof Error ? err.message : String(err));
         setPhase('halted');
