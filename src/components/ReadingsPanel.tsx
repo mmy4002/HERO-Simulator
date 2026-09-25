@@ -7,7 +7,7 @@ function Reading({ label, value, unit, sub, title, state }: { label: string; val
     <div className="reading" title={title} data-state={state}>
       <dt className="reading-label">{label}</dt>
       <dd className="reading-value">
-        <span className="value">{value}</span>
+        <span className={/\d/.test(value) ? 'value' : 'value value-text'}>{value}</span>
         <span className="unit">{unit}</span>
       </dd>
       {sub && <dd className="reading-sub">{sub}</dd>}
@@ -40,7 +40,7 @@ export default function ReadingsPanel({ state, latest }: { state: SimulationStat
           title="Dry-gas partial pressure xCO₂·P, not an alveolar or arterial value"
         />
         <Reading
-          label="Inspired CO₂ (last breath, well-mixed)"
+          label="Inspired CO₂ (last breath)"
           value={inspiredText ?? fmt(fracToPct(inspired!), 3)}
           unit={inspiredText ? '' : '%'}
           title="Breath-weighted average over the last completed inspiration"

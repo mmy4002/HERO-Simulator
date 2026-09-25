@@ -5,3 +5,4 @@ dist
 .DS_Store
 /heroes-scene/
 /heroes-physics/
+/release/

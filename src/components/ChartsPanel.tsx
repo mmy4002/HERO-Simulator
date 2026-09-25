@@ -15,7 +15,7 @@ interface Props {
   runs: Partial<Record<'A' | 'B', SavedRun>>;
 }
 
-function chartSet(rows: ChartRow[], prefixes: { p: string; name: string; dashed?: boolean }[], thresholdBar: number | null, eventTimes: number[]) {
+function chartSet(rows: ChartRow[], prefixes: { p: string; name: string; dashed?: boolean }[], thresholdBar: number | null, eventTimes: number[], breathMarkers: boolean) {
   const mk = (key: string, name: string, color: string, extra: Partial<ChartSeries> = {}) =>
     prefixes.map(({ p, name: run, dashed }) => ({ key: p + key, name: prefixes.length > 1 ? `${name} ${run}` : name, color, dashed, ...extra }));
   return (
@@ -34,12 +34,12 @@ function chartSet(rows: ChartRow[], prefixes: { p: string; name: string; dashed?
         unit="%"
         digits={2}
         data={rows}
-        series={[...mk('co2', 'Bulk', C.orange), ...mk('inspired', 'Inspired (breath)', C.red, { markers: true })]}
+        series={[...mk('co2', 'Bulk', C.orange), ...(breathMarkers ? mk('inspired', 'Inspired (breath)', C.red, { markers: true }) : [])]}
         eventTimes={eventTimes}
       />
       <TimeChart title="O₂ concentration" unit="%" digits={1} data={rows} series={mk('o2', 'O₂', C.teal)} eventTimes={eventTimes} />
       <TimeChart
-        title="External flows"
+        title="External flows (1 s avg)"
         unit="ref L/min"
         digits={0}
         data={rows}
@@ -72,11 +72,11 @@ export default function ChartsPanel({ history, events, parameters, runs }: Props
         )}
       </div>
       {tab === 'live' ? (
-        <div className="chart-grid">{chartSet(live, [{ p: '', name: '' }], liveThreshold, events.map((e) => e.timeS))}</div>
+        <div className="chart-grid">{chartSet(live, [{ p: '', name: '' }], liveThreshold, events.map((e) => e.timeS), true)}</div>
       ) : hasComparison ? (
         <div className="compare-layout">
           <div className="chart-grid">
-            {chartSet(compare, [{ p: 'a_', name: 'A' }, { p: 'b_', name: 'B', dashed: true }], compareThreshold, [])}
+            {chartSet(compare, [{ p: 'a_', name: 'A' }, { p: 'b_', name: 'B', dashed: true }], compareThreshold, [], false)}
           </div>
           <ComparisonSummary runs={runs} />
         </div>

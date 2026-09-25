@@ -6,9 +6,9 @@ import { CONTROLS, withLiveParameter, type LiveParameterKey, type Speed } from '
 import { CHUNK_S } from './runs';
 
 /** Largest wall-clock gap credited per animation frame (hidden tabs / stalls do not catch up). */
-const MAX_FRAME_S = 0.1;
-const MAX_CHUNKS_PER_FRAME = 20;
-const UI_INTERVAL_MS = 200;
+const MAX_FRAME_S = 0.25;
+const MAX_CHUNKS_PER_FRAME = 30;
+const UI_INTERVAL_MS = 250;
 const SCENE_INTERVAL_MS = 33;
 
 export type RunPhase = 'unavailable' | 'ready' | 'running' | 'paused' | 'halted' | 'complete';

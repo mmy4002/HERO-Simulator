@@ -260,3 +260,5 @@ h1, h2, p, dl, dd, figure { margin: 0; }
   .reading-list { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
   .chart-grid { grid-template-columns: minmax(0, 1fr); }
 }
+.reading-value .value-text { font-size: 15px; font-weight: 600; color: var(--muted); }
+.reading[data-state='on'] .value-text { color: #c0392b; font-size: 20px; font-weight: 700; }

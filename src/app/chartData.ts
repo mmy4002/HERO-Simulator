@@ -24,15 +24,33 @@ export function sampleToRow(s: SimulationSample, prefix = ''): ChartRow {
   };
 }
 
+/** Charts only: trailing moving average of inlet/overflow flow (the zero-hysteresis overflow chatters). */
+export const FLOW_SMOOTHING_SAMPLES = 10;
+
+export function smoothFlows(samples: SimulationSample[], window = FLOW_SMOOTHING_SAMPLES): SimulationSample[] {
+  let inlet = 0;
+  let overflow = 0;
+  return samples.map((s, i) => {
+    inlet += s.inletRefLpm;
+    overflow += s.overflowRefLpm;
+    if (i >= window) {
+      inlet -= samples[i - window].inletRefLpm;
+      overflow -= samples[i - window].overflowRefLpm;
+    }
+    const n = Math.min(i + 1, window);
+    return { ...s, inletRefLpm: inlet / n, overflowRefLpm: Math.max(0, overflow / n) };
+  });
+}
+
 export function liveRows(samples: SimulationSample[]): ChartRow[] {
-  return decimate(samples).map((s) => sampleToRow(s));
+  return decimate(smoothFlows(samples)).map((s) => sampleToRow(s));
 }
 
 /** Merges two runs on the shared time grid (both are sampled at identical fixed chunks from t = 0). */
 export function comparisonRows(a: SimulationSample[] | null, b: SimulationSample[] | null): ChartRow[] {
   const byTime = new Map<string, ChartRow>();
   for (const [prefix, samples] of [['a_', a], ['b_', b]] as const) {
-    for (const s of decimate(samples ?? [])) {
+    for (const s of decimate(smoothFlows(samples ?? []))) {
       const k = s.timeS.toFixed(2);
       byTime.set(k, { ...(byTime.get(k) ?? {}), ...sampleToRow(s, prefix) });
     }
