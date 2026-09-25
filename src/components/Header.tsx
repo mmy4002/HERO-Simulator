@@ -10,7 +10,7 @@ const STATUS_TEXT: Record<RunPhase, string> = {
   complete: 'Run complete',
 };
 
-export default function Header({ phase, timeS }: { phase: RunPhase; timeS: number | null }) {
+export default function Header({ phase, timeS, onPresent }: { phase: RunPhase; timeS: number | null; onPresent: () => void }) {
   return (
     <header className="header">
       <div className="brand">
@@ -23,6 +23,9 @@ export default function Header({ phase, timeS }: { phase: RunPhase; timeS: numbe
         <span className="status-dot" aria-hidden="true" />
         {STATUS_TEXT[phase]}
         {timeS !== null && <span className="status-time">t = {timeS.toFixed(1)} s</span>}
+        <button type="button" className="btn btn-sm present-btn" onClick={onPresent} title="Presentation mode (P)">
+          Present
+        </button>
       </div>
     </header>
   );
